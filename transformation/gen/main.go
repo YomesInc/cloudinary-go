@@ -9,17 +9,13 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"text/template"
 )
 
-type writeableDefinition struct {
-	Path         string
-	PackageName  string
-	StructEntity string
-}
-
 func main() {
-	var definitions []writeableDefinition
+	curDir, _ := os.Getwd()
+
 	err := filepath.Walk(".",
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -27,7 +23,7 @@ func main() {
 			}
 
 			if !info.IsDir() && filepath.Ext(path) == ".go" {
-				definitions = append(definitions, searchMixinsInFile(path)...)
+				searchMixinsInFile(curDir, path)
 			}
 			return nil
 		},
@@ -36,16 +32,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	if len(definitions) > 0 {
-		curDir, _ := os.Getwd()
-		writeDefinitions(definitions, curDir)
-	}
 }
 
-func searchMixinsInFile(fileName string) []writeableDefinition {
-	definitions := []writeableDefinition{}
-
+func searchMixinsInFile(curDir string, fileName string) {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, fileName, nil, parser.ParseComments)
 	if err != nil {
@@ -72,32 +61,50 @@ func searchMixinsInFile(fileName string) []writeableDefinition {
 			return true
 		}
 
+		var mixins []string
+
 		for _, field := range s.Fields.List {
 			if field.Tag != nil {
 				sz := len(field.Tag.Value)
 				tag := reflect.StructTag(field.Tag.Value[1 : sz-1])
 				if tag.Get("mixin") != "" {
-					definitions = append(definitions, writeableDefinition{filepath.Dir(fileName), currentPackage, fmt.Sprintf("%s.%s", currentPackage, currentTypeName)})
+					mixins = append(mixins, tag.Get("mixin"))
 				}
 			}
 		}
 
+		if len(mixins) > 0 {
+			generateMixins(
+				curDir,
+				filepath.Dir(fileName),
+				currentPackage,
+				currentTypeName,
+				mixins,
+			)
+		}
+
 		return false
 	})
-
-	return definitions
 }
 
-func writeDefinitions(definitions []writeableDefinition, baseDir string) {
-	t := template.Must(template.ParseFiles(fmt.Sprintf("%s/transformation/gen/generator.template", baseDir)))
-	f, _ := os.Create(fmt.Sprintf("%s/transformation/gen/generator.go", baseDir))
-	w := bufio.NewWriter(f)
+func generateMixins(curDir string, directory string, packageName string, typeName string, mixins []string) {
+	for _, m := range mixins {
+		t := template.Must(template.ParseFiles(fmt.Sprintf("%s/transformation/gen/%s.template", curDir, m)))
 
-	templateData := struct {
-		Definitions []writeableDefinition
-	}{Definitions: definitions}
+		mixinData := struct {
+			PackageName string
+			StructName  string
+			Receiver    string
+		}{
+			packageName,
+			typeName,
+			strings.ToLower(typeName)[0:1],
+		}
 
-	t.Execute(w, templateData)
-	w.Flush()
-	f.Close()
+		f, _ := os.Create(fmt.Sprintf("%s/%s/%s_%s.go", curDir, directory, strings.ToLower(typeName), m))
+		w := bufio.NewWriter(f)
+		t.Execute(w, mixinData)
+		w.Flush()
+		f.Close()
+	}
 }
