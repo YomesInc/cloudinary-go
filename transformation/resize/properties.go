@@ -2,13 +2,29 @@ package resize
 
 import (
 	"fmt"
+	"github.com/cloudinary/cloudinary-go/logger"
 	"reflect"
 )
 
 type Dimensions struct {
-	width       interface{} `cld:"w"`
-	height      interface{} `cld:"h"`
-	aspectRatio interface{} `cld:"ar"`
+	width       interface{} `cld:"w" setters:"int,float32:Percent,string:Expr"`
+	height      interface{} `cld:"h" setters:"int,float32:Percent,string:Expr"`
+	aspectRatio interface{} `cld:"ar" setters:"int,float32:Percent,string:Expr"`
+	Test
+}
+
+type Test struct {
+	Test2
+	testField interface{} `setters:"int,string:Expr,float32:Float"`
+}
+
+type Test2 struct {
+	Test3
+	logger.Test4
+}
+
+type Test3 struct {
+	test3Field interface{} `setters:"string,int:Percent"`
 }
 
 func (d Dimensions) String() string {

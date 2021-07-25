@@ -10,7 +10,7 @@ import (
 // Crop resize
 type CropGroup struct {
 	cropMode   interface{} `cld:"c"`
-	Dimensions `mixin:"dimension"`
+	Dimensions `mixin:"true"`
 }
 
 func Crop() *CropGroup {
