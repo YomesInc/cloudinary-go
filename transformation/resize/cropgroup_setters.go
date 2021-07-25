@@ -72,18 +72,6 @@ func (c *CropGroup) TestFieldFloat(testField float32) *CropGroup {
 	return c
 }
 
-func (c *CropGroup) Test4FieldTest(Test4Field int) *CropGroup {
-	c.Test4Field = Test4Field
-
-	return c
-}
-
-func (c *CropGroup) Test4FieldExpr(Test4Field string) *CropGroup {
-	c.Test4Field = Test4Field
-
-	return c
-}
-
 func (c *CropGroup) Test3Field(test3Field string) *CropGroup {
 	c.test3Field = test3Field
 
@@ -92,6 +80,18 @@ func (c *CropGroup) Test3Field(test3Field string) *CropGroup {
 
 func (c *CropGroup) Test3FieldPercent(test3Field int) *CropGroup {
 	c.test3Field = test3Field
+
+	return c
+}
+
+func (c *CropGroup) Test4FieldTest(Test4Field int) *CropGroup {
+	c.Test4Field = Test4Field
+
+	return c
+}
+
+func (c *CropGroup) Test4FieldExpr(Test4Field string) *CropGroup {
+	c.Test4Field = Test4Field
 
 	return c
 }
