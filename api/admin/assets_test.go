@@ -40,6 +40,39 @@ func TestAssets_AssetsByIDs(t *testing.T) {
 	}
 }
 
+func TestAssets_AssetsByAssetIDs(t *testing.T) {
+	asset, err := cldtest.UploadTestAsset(t, cldtest.PublicID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := adminAPI.AssetsByAssetIDs(ctx, admin.AssetsByAssetIDsParams{AssetIDs: api.CldAPIArray{asset.AssetID}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	n := len(resp.Assets)
+	if n != 1 {
+		t.Errorf("got %d, want 1", n)
+	}
+
+	asset2, err := cldtest.UploadTestAsset(t, cldtest.PublicID2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err = adminAPI.AssetsByAssetIDs(ctx, admin.AssetsByAssetIDsParams{AssetIDs: api.CldAPIArray{asset.AssetID, asset2.AssetID}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	n = len(resp.Assets)
+	if n != 2 {
+		t.Errorf("got %d, want 2", n)
+	}
+
+}
+
 func TestAssets_RestoreAssets(t *testing.T) {
 	resp, err := adminAPI.RestoreAssets(ctx, admin.RestoreAssetsParams{PublicIDs: []string{"api_test_restore_20891", "api_test_restore_94060"}})
 	if err != nil {

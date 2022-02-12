@@ -18,6 +18,7 @@ const (
 	cldContext    api.EndPoint = "context"
 	moderations   api.EndPoint = "moderations"
 	restore       api.EndPoint = "restore"
+	byAssetIds    api.EndPoint = "by_asset_ids"
 )
 
 // AssetTypes lists available asset types.
@@ -153,6 +154,25 @@ type AssetsByIDsParams struct {
 func (a *API) AssetsByIDs(ctx context.Context, params AssetsByIDsParams) (*AssetsResult, error) {
 	res := &AssetsResult{}
 	_, err := a.get(ctx, api.BuildPath(assets, params.AssetType, params.DeliveryType), params, res)
+
+	return res, err
+}
+
+// AssetsByAssetIDsParams are the parameters for AssetsByAssetIDs.
+type AssetsByAssetIDsParams struct {
+	AssetIDs    api.CldAPIArray `json:"asset_ids"`
+	PublicIDs   api.CldAPIArray `json:"public_ids"`
+	Tags        bool            `json:"tags,omitempty"`
+	Context     bool            `json:"context,omitempty"`
+	Moderations bool            `json:"moderations,omitempty"`
+}
+
+// AssetsByIDs lists assets with the specified asset IDs.
+//
+// https://cloudinary.com/documentation/admin_api#get_resources
+func (a *API) AssetsByAssetIDs(ctx context.Context, params AssetsByAssetIDsParams) (*AssetsResult, error) {
+	res := &AssetsResult{}
+	_, err := a.get(ctx, api.BuildPath(assets, byAssetIds), params, res)
 
 	return res, err
 }
